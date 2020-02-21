@@ -40,6 +40,7 @@ typedef struct LG {
 
 //这里的栈模拟了操作系统的中线程的栈，虽然每个函数调用都有栈，但是都是共享一个线程栈
 //每个调用中都有通过ci的base和top来定位在线程栈中调用栈的位置
+//每个调用中 如何确定具体ci栈大小呢，precall
 static void stack_init (lua_State *L1, lua_State *L) {
   /* initialize CallInfo array */
   L1->base_ci = luaM_newvector(L, BASIC_CI_SIZE, CallInfo);

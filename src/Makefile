@@ -8,7 +8,7 @@
 PLAT= none
 
 CC= gcc
-CFLAGS= -O2 -Wall $(MYCFLAGS)
+CFLAGS= -O0 -g -Wall $(MYCFLAGS)
 AR= ar rcu
 RANLIB= ranlib
 RM= rm -f
@@ -31,12 +31,13 @@ LIB_O=	lauxlib.o lbaselib.o ldblib.o liolib.o lmathlib.o loslib.o ltablib.o \
 
 LUA_T=	lua
 LUA_O=	lua.o
-
+TEST_T= test
+TEST_O= test.o
 LUAC_T=	luac
 LUAC_O=	luac.o print.o
 
-ALL_O= $(CORE_O) $(LIB_O) $(LUA_O) $(LUAC_O)
-ALL_T= $(LUA_A) $(LUA_T) $(LUAC_T)
+ALL_O= $(CORE_O) $(LIB_O) $(LUA_O) $(LUAC_O) $(TEST_O)
+ALL_T= $(LUA_A) $(LUA_T) $(LUAC_T) $(TEST_T)
 ALL_A= $(LUA_A)
 
 default: $(PLAT)
@@ -56,6 +57,9 @@ $(LUA_T): $(LUA_O) $(LUA_A)
 
 $(LUAC_T): $(LUAC_O) $(LUA_A)
 	$(CC) -o $@ $(MYLDFLAGS) $(LUAC_O) $(LUA_A) $(LIBS)
+
+$(TEST_T): $(TEST_O) $(LUA_A)
+	$(CC) -o $@ $(MYLDFLAGS) $(TEST_O) $(LUA_A) $(LIBS)
 
 clean:
 	$(RM) $(ALL_T) $(ALL_O)

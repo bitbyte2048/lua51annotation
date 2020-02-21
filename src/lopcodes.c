@@ -59,7 +59,7 @@ const char *const luaP_opnames[NUM_OPCODES+1] = {
 #define opmode(t,a,b,c,m) (((t)<<7) | ((a)<<6) | ((b)<<4) | ((c)<<2) | (m))
 //opcode码的设计
 //A表示是否会赋值给R(A)
-//B,C参数格式 OpArgR(参数未被使用) OpArgR(该参数为寄存器或者跳转) OpArgK参数是否为常量表索引
+//B,C参数格式 OpArgR(参数未被使用) OpArgR(该参数为寄存器或者跳转) OpArgK参数是否为常量
 const lu_byte luaP_opmodes[NUM_OPCODES] = {
 /*       T  A    B       C     mode		   opcode	*/
   opmode(0, 1, OpArgR, OpArgN, iABC) 		/* OP_MOVE */
