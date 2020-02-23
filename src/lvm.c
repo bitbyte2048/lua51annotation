@@ -726,6 +726,7 @@ void luaV_execute (lua_State *L, int nexeccalls) {
         luaF_close(L, ra);
         continue;
       }
+      //闭包指令
       case OP_CLOSURE: {
         Proto *p;
         Closure *ncl;
@@ -734,9 +735,10 @@ void luaV_execute (lua_State *L, int nexeccalls) {
         nup = p->nups;
         ncl = luaF_newLclosure(L, nup, cl->env);
         ncl->l.p = p;
+        //根据upvalue的数量 做特定的解释，可能跟着后面的mov指令也做特别的解释
         for (j=0; j<nup; j++, pc++) {
           if (GET_OPCODE(*pc) == OP_GETUPVAL)
-            ncl->l.upvals[j] = cl->upvals[GETARG_B(*pc)];
+            ncl->l.upvals[j] = cl->upvals[GETARG_B(*pc)]; //这里传递指针
           else {
             lua_assert(GET_OPCODE(*pc) == OP_MOVE);
             ncl->l.upvals[j] = luaF_findupval(L, base + GETARG_B(*pc));

@@ -319,6 +319,7 @@ static void pushclosure (LexState *ls, FuncState *func, expdesc *v) {
   luaC_objbarrier(ls->L, f, func->f);
   init_exp(v, VRELOCABLE, luaK_codeABx(fs, OP_CLOSURE, 0, fs->np-1));
   for (i=0; i<func->f->nups; i++) {
+    //这里k类型为VUPVAL类型
     OpCode o = (func->upvalues[i].k == VLOCAL) ? OP_MOVE : OP_GETUPVAL;
     luaK_codeABC(fs, o, 0, func->upvalues[i].info, 0);
   }

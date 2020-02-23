@@ -288,6 +288,7 @@ typedef struct LocVar {
 typedef struct UpVal {
   CommonHeader;
   TValue *v;  /* points to stack or to its own value */
+  //这里分2个状态 开闭状态，开状态表示引用状态 闭状态表示值的状态
   union {
     TValue value;  /* the value (when closed) */
     struct {  /* double linked list (when open) */
@@ -306,17 +307,18 @@ typedef struct UpVal {
 	CommonHeader; lu_byte isC; lu_byte nupvalues; GCObject *gclist; \
 	struct Table *env
 
+//c闭包
 typedef struct CClosure {
   ClosureHeader;
-  lua_CFunction f;
-  TValue upvalue[1];
+  lua_CFunction f;    //这里是c函数指针
+  TValue upvalue[1];  //这里为什么只有一个upvalue的值？？
 } CClosure;
 
-
+//lua闭包
 typedef struct LClosure {
   ClosureHeader;
-  struct Proto *p;
-  UpVal *upvals[1];
+  struct Proto *p;  //编译的指令
+  UpVal *upvals[1]; //保存的upvalue
 } LClosure;
 
 

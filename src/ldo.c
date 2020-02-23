@@ -353,6 +353,7 @@ int luaD_poscall (lua_State *L, StkId firstResult) {
   //ci 减一，恢复上一层调用信息
   ci = L->ci--;
   res = ci->func;  /* res == final position of 1st result */
+  //设置返回参数 恢复pc指针以及栈信息
   wanted = ci->nresults;
   L->base = (ci - 1)->base;  /* restore base */
   L->savedpc = (ci - 1)->savedpc;  /* restore savedpc */

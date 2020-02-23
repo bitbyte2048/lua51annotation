@@ -52,9 +52,12 @@ UpVal *luaF_newupval (lua_State *L) {
 
 UpVal *luaF_findupval (lua_State *L, StkId level) {
   global_State *g = G(L);
+  //pp指针指向当前虚拟机的openupval
   GCObject **pp = &L->openupval;
   UpVal *p;
   UpVal *uv;
+  //遍历虚拟机的openupva链表，查找等于该level的节点
+  //openupval链表是从大到小排序的链表 代表函数调用的不同层次
   while (*pp != NULL && (p = ngcotouv(*pp))->v >= level) {
     lua_assert(p->v != &p->u.value);
     if (p->v == level) {  /* found a corresponding upvalue? */
@@ -64,10 +67,13 @@ UpVal *luaF_findupval (lua_State *L, StkId level) {
     }
     pp = &p->next;
   }
+  //找不到创建一个upval
   uv = luaM_new(L, UpVal);  /* not found: create a new one */
   uv->tt = LUA_TUPVAL;
   uv->marked = luaC_white(g);
+  //设置当前调用的层级
   uv->v = level;  /* current value lives in the stack */
+  //挂在入openupval链表
   uv->next = *pp;  /* chain it in the proper position */
   *pp = obj2gco(uv);
   uv->u.l.prev = &g->uvhead;  /* double link it in `uvhead' list */
@@ -92,18 +98,23 @@ void luaF_freeupval (lua_State *L, UpVal *uv) {
   luaM_free(L, uv);  /* free upvalue */
 }
 
-
+//关闭函数
 void luaF_close (lua_State *L, StkId level) {
   UpVal *uv;
   global_State *g = G(L);
   while (L->openupval != NULL && (uv = ngcotouv(L->openupval))->v >= level) {
     GCObject *o = obj2gco(uv);
     lua_assert(!isblack(o) && uv->v != &uv->u.value);
+    //把高于level的openupval中的upval都移除
     L->openupval = uv->next;  /* remove from `open' list */
     if (isdead(g, o))
       luaF_freeupval(L, uv);  /* free upvalue */
     else {
+      //解除引用 从开状态切换到闭状态，这个时候
       unlinkupval(uv);
+      //值保存到v中 这个时候闭状态了，并不指向虚拟机的openupval中
+      //这里内存就多了一份拷贝了，在虚拟机执行过程中，未关闭函数时，都指向同一份内存也就是在openupval中的内存
+      //关闭后就多一份拷贝，upval就处于关闭状态，这里可以看出lua运行过程极致的扣内存
       setobj(L, &uv->u.value, uv->v);
       uv->v = &uv->u.value;  /* now current value lives here */
       luaC_linkupval(L, uv);  /* link upvalue into `gcroot' list */
