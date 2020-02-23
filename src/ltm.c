@@ -28,6 +28,7 @@ const char *const luaT_typenames[] = {
 
 
 void luaT_init (lua_State *L) {
+  //定义元方法字符串
   static const char *const luaT_eventname[] = {  /* ORDER TM */
     "__index", "__newindex",
     "__gc", "__mode", "__eq",
@@ -38,6 +39,7 @@ void luaT_init (lua_State *L) {
   int i;
   for (i=0; i<TM_N; i++) {
     G(L)->tmname[i] = luaS_new(L, luaT_eventname[i]);
+    //这里会标记回收标志 让这些字符串永远不被回收
     luaS_fix(G(L)->tmname[i]);  /* never collect these names */
   }
 }
@@ -47,6 +49,7 @@ void luaT_init (lua_State *L) {
 ** function to be used with macro "fasttm": optimized for absence of
 ** tag methods
 */
+//通过ename字符串的key来查找表中的元表 这里flags标记如果查找不到
 const TValue *luaT_gettm (Table *events, TMS event, TString *ename) {
   const TValue *tm = luaH_getstr(events, ename);
   lua_assert(event <= TM_EQ);
@@ -57,7 +60,7 @@ const TValue *luaT_gettm (Table *events, TMS event, TString *ename) {
   else return tm;
 }
 
-
+//在元表中查找 这里可以注意到除了table和userdata类型 其他类型都是一个类型公用一个元表
 const TValue *luaT_gettmbyobj (lua_State *L, const TValue *o, TMS event) {
   Table *mt;
   switch (ttype(o)) {

@@ -37,7 +37,7 @@ typedef enum {
 } TMS;
 
 
-
+//下次查找时给上述的gfasttm宏，快速返回了
 #define gfasttm(g,et,e) ((et) == NULL ? NULL : \
   ((et)->flags & (1u<<(e))) ? NULL : luaT_gettm(et, e, (g)->tmname[e]))
 

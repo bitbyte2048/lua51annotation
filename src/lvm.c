@@ -104,13 +104,16 @@ static void callTM (lua_State *L, const TValue *f, const TValue *p1,
   luaD_call(L, L->top - 4, 0);
 }
 
-
+//从表中查找数据
 void luaV_gettable (lua_State *L, const TValue *t, TValue *key, StkId val) {
   int loop;
+  //这里支持多层查找，类似于多层继承 因为每次把查找到的tm重新赋值给t
   for (loop = 0; loop < MAXTAGLOOP; loop++) {
     const TValue *tm;
+    //如果t是表，就先从哈希中查找，查找不到在通过
     if (ttistable(t)) {  /* `t' is a table? */
       Table *h = hvalue(t);
+      //从哈希中查找 如果找不到通过fasttm查找，即是通过元表中index索引中查找
       const TValue *res = luaH_get(h, key); /* do a primitive get */
       if (!ttisnil(res) ||  /* result is no nil? */
           (tm = fasttm(L, h->metatable, TM_INDEX)) == NULL) { /* or no TM? */
@@ -119,6 +122,7 @@ void luaV_gettable (lua_State *L, const TValue *t, TValue *key, StkId val) {
       }
       /* else will try the tag method */
     }
+    //不是表也有元表，比如number或者string，所有的number或者string公用一个元表 userdata也拥有元表
     else if (ttisnil(tm = luaT_gettmbyobj(L, t, TM_INDEX)))
       luaG_typeerror(L, t, "index");
     if (ttisfunction(tm)) {
@@ -130,13 +134,14 @@ void luaV_gettable (lua_State *L, const TValue *t, TValue *key, StkId val) {
   luaG_runerror(L, "loop in gettable");
 }
 
-
+//
 void luaV_settable (lua_State *L, const TValue *t, TValue *key, StkId val) {
   int loop;
   for (loop = 0; loop < MAXTAGLOOP; loop++) {
     const TValue *tm;
     if (ttistable(t)) {  /* `t' is a table? */
       Table *h = hvalue(t);
+      //先进行设置，如果旧值为nil的话，在尝试设置元方法里的表
       TValue *oldval = luaH_set(L, h, key); /* do a primitive set */
       if (!ttisnil(oldval) ||  /* result is no nil? */
           (tm = fasttm(L, h->metatable, TM_NEWINDEX)) == NULL) { /* or no TM? */
