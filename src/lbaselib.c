@@ -523,13 +523,18 @@ static int auxresume (lua_State *L, lua_State *co, int narg) {
     lua_pushfstring(L, "cannot resume %s coroutine", statnames[status]);
     return -1;  /* error flag */
   }
+  //把L栈上的narg个参数移动到co栈中（移动参数）
   lua_xmove(L, co, narg);
+  //继承L中的调用层级
   lua_setlevel(L, co);
+  //开始resume co协程，status表示如何返回的
   status = lua_resume(co, narg);
   if (status == 0 || status == LUA_YIELD) {
+    //返回值个数
     int nres = lua_gettop(co);
     if (!lua_checkstack(L, nres + 1))
       luaL_error(L, "too many results to resume");
+    //从co中移动到L中 返回值
     lua_xmove(co, L, nres);  /* move yielded values */
     return nres;
   }
@@ -541,6 +546,7 @@ static int auxresume (lua_State *L, lua_State *co, int narg) {
 
 
 static int luaB_coresume (lua_State *L) {
+  //栈顶是否为协程
   lua_State *co = lua_tothread(L, 1);
   int r;
   luaL_argcheck(L, co, 1, "coroutine expected");
@@ -572,12 +578,14 @@ static int luaB_auxwrap (lua_State *L) {
   return r;
 }
 
-
+//创建协程
 static int luaB_cocreate (lua_State *L) {
   lua_State *NL = lua_newthread(L);
   luaL_argcheck(L, lua_isfunction(L, 1) && !lua_iscfunction(L, 1), 1,
     "Lua function expected");
+  //lua函数对象押栈
   lua_pushvalue(L, 1);  /* move function to top */
+  //在移动到NL lua_state中
   lua_xmove(L, NL, 1);  /* move function from L to NL */
   return 1;
 }

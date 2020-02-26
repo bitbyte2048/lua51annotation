@@ -391,24 +391,30 @@ void luaD_call (lua_State *L, StkId func, int nResults) {
 static void resume (lua_State *L, void *ud) {
   StkId firstArg = cast(StkId, ud);
   CallInfo *ci = L->ci;
+  //状态为0 表示第一次调用协程
   if (L->status == 0) {  /* start coroutine? */
     lua_assert(ci == L->base_ci && firstArg > L->base);
+    //开始做准备工作 
     if (luaD_precall(L, firstArg - 1, LUA_MULTRET) != PCRLUA)
       return;
   }
+  //从yield中在次resume，准备工作不需要做了
   else {  /* resuming from previous yield */
     lua_assert(L->status == LUA_YIELD);
     L->status = 0;
     if (!f_isLua(ci)) {  /* `common' yield? */
       /* finish interrupted execution of `OP_CALL' */
+      //判断调用中的函数是否是lua函数，如果此时不是lua函数的话，poscall继续做未完成的工作
       lua_assert(GET_OPCODE(*((ci-1)->savedpc - 1)) == OP_CALL ||
                  GET_OPCODE(*((ci-1)->savedpc - 1)) == OP_TAILCALL);
       if (luaD_poscall(L, firstArg))  /* complete it... */
         L->top = L->ci->top;  /* and correct top if not multiple results */
     }
     else  /* yielded inside a hook: just continue its execution */
+      //设置成ci的base指针 继续执行
       L->base = L->ci->base;
   }
+  //虚拟机接着执行
   luaV_execute(L, cast_int(L->ci - L->base_ci));
 }
 
@@ -432,6 +438,7 @@ LUA_API int lua_resume (lua_State *L, int nargs) {
   luai_userstateresume(L, nargs);
   lua_assert(L->errfunc == 0);
   L->baseCcalls = ++L->nCcalls;
+  //这里真正调用恢复操作
   status = luaD_rawrunprotected(L, resume, L->top - nargs);
   if (status != 0) {  /* error? */
     L->status = cast_byte(status);  /* mark thread as `dead' */
@@ -447,12 +454,13 @@ LUA_API int lua_resume (lua_State *L, int nargs) {
   return status;
 }
 
-
+//协程挂起
 LUA_API int lua_yield (lua_State *L, int nresults) {
   luai_userstateyield(L, nresults);
   lua_lock(L);
   if (L->nCcalls > L->baseCcalls)
     luaG_runerror(L, "attempt to yield across metamethod/C-call boundary");
+  //保护top-nresults下的数据
   L->base = L->top - nresults;  /* protect stack slots below */
   L->status = LUA_YIELD;
   lua_unlock(L);

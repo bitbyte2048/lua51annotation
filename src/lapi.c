@@ -106,7 +106,7 @@ LUA_API int lua_checkstack (lua_State *L, int size) {
   return res;
 }
 
-
+//from协程移动n个数据到to协程
 LUA_API void lua_xmove (lua_State *from, lua_State *to, int n) {
   int i;
   if (from == to) return;
@@ -135,7 +135,6 @@ LUA_API lua_CFunction lua_atpanic (lua_State *L, lua_CFunction panicf) {
   lua_unlock(L);
   return old;
 }
-
 
 LUA_API lua_State *lua_newthread (lua_State *L) {
   lua_State *L1;

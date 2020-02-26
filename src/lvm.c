@@ -396,6 +396,7 @@ void luaV_execute (lua_State *L, int nexeccalls) {
     if ((L->hookmask & (LUA_MASKLINE | LUA_MASKCOUNT)) &&
         (--L->hookcount == 0 || L->hookmask & LUA_MASKLINE)) {
       traceexec(L, pc);
+      //如果状态为YIELD的话，保存上次执行的指针 并退出
       if (L->status == LUA_YIELD) {  /* did hook yield? */
         L->savedpc = pc - 1;
         return;
