@@ -65,6 +65,7 @@ typedef struct CallInfo {
 /*
 ** `global state', shared by all threads of this state
 */
+//这个才能算lua的虚拟机，所有的lua线程共享一个global_State
 typedef struct global_State {
   //字符串表
   stringtable strt;  /* hash table for strings */
@@ -98,6 +99,7 @@ typedef struct global_State {
 /*
 ** `per thread' state
 */
+//lua线程 具有独立的栈 以及函数调用链
 struct lua_State {
   CommonHeader;   //被gc管理
   lu_byte status;
